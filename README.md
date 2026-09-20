@@ -1,81 +1,157 @@
 # ServeSense — MVP
 
-A volunteer-to-need matching platform for NGOs, communities, and donors.
+A volunteer-to-need matching and resource allocation platform for NGOs, communities, volunteers, and donors.
+
+ServeSense combines explainable volunteer matching, local need intelligence, predictive volunteer-demand forecasting, NGO coordination, and donations into a single platform.
 
 ## Stack
+
 - Backend: FastAPI + SQLAlchemy + SQLite
 - Frontend: React + Vite + React Router
-- Matching: explainable weighted scoring + hard constraints
-- Auth: demo role switcher (`X-User-Id`) — not production authentication
+- Machine Learning: LightGBM + Scikit-learn + Pandas + NumPy
+- Matching: Explainable weighted scoring + hard constraints
+- Demand Prediction: LightGBM-based volunteer demand forecasting
+- Auth: Demo role switcher (`X-User-Id`) — not production authentication
 - API docs: FastAPI `/docs`
 
 ## Features
-- Volunteer dashboard with recommendations, nearby tasks, assignments, availability, and impact
-- NGO dashboard with task creation, volunteer matching, assignments, alerts, and impact
-- Explainable matching (skills, availability, distance, reliability)
-- Assignments with accept / decline
-- Attendance and impact records
-- Donation campaigns with mock payments
-- Local intelligence (need score, volunteer gaps, resource map)
-- In-app notifications, with email / SMS / push channel stubs
-- Demo seed data
 
-## Run
+### Volunteer Dashboard
 
-### Backend
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
+- Personalized volunteer recommendations
+- Nearby tasks
+- Skill and availability matching
+- Assignment management
+- Accept / decline assignments
+- Availability management
+- Volunteer impact tracking
 
-### Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
+### NGO Dashboard
 
-Open the URL shown by Vite, usually `http://localhost:5173`.
+- Task creation and management
+- Volunteer recommendations
+- Explainable matching scores
+- Assignment management
+- Volunteer gap identification
+- Smart alerts
+- Impact tracking
 
-API: `http://127.0.0.1:8000`  
-Swagger: `http://127.0.0.1:8000/docs`
+### Explainable Volunteer Matching
 
-## Demo data
-```bash
-curl -X POST http://127.0.0.1:8000/demo/seed
-```
+Volunteers are ranked using an explainable weighted scoring system based on:
 
-Then use the navbar role switcher:
-- **Maya Volunteer** — volunteer dashboard
-- **Aarav Coordinator** — NGO dashboard
-- **Public / donor** — donation portal
+- Skills
+- Availability
+- Distance
+- Reliability
+- Service-gap considerations
 
-## Main routes
-- `/` public landing
-- `/volunteer/dashboard`
-- `/ngo/dashboard`
-- `/donations`
-- `/campaign/:id`
-- `/ngo/:id`
-- `/intelligence`
-- `/notifications`
+Mandatory certifications and other hard requirements are applied as constraints before ranking.
 
-## Matching
-Score = `0.40 skill + 0.25 availability + 0.20 distance + 0.15 reliability`, with a small service-gap adjustment. Mandatory certifications remain hard filters.
+### Local Intelligence
 
-## Local need score
-Need = `0.35 vulnerability + 0.30 service gap + 0.20 urgency + 0.15 unfilled demand` (all 0–1).
+ServeSense provides location-based intelligence to identify:
 
-## Payments
-MVP uses `PaymentService` with a mock provider. No card numbers, CVVs, or bank credentials are collected or stored.
+- Communities with higher levels of need
+- Vulnerability levels
+- Service gaps
+- Open and urgent tasks
+- Unfilled volunteer positions
+- Available volunteer capacity
+- Relief centers and organizations
+- Volunteer-to-need gaps
 
-## Tests
-```bash
-cd backend
-source .venv/bin/activate
-python -m pytest tests/test_platform.py -q
-```
-`pytest` is optional; the same checks can be run with the FastAPI `TestClient`.
+The platform also provides a resource map showing communities, tasks, volunteers, organizations, and relief centers.
+
+### Predictive Volunteer Intelligence
+
+ServeSense uses a LightGBM machine-learning model to forecast volunteer demand for a region.
+
+The prediction pipeline combines:
+
+- Historical task volume over the last 7 days
+- Historical task volume over the last 30 days
+- Unfulfilled task ratio
+- Disaster severity
+- Event radius
+- Population density
+- Vulnerability index
+- Weekend information
+- Seasonal/month information
+
+The model produces:
+
+- Predicted number of volunteers required
+- Demand classification:
+  - `LOW`
+  - `MODERATE`
+  - `HIGH`
+  - `CRITICAL`
+
+Historical task metrics are retrieved from the database and combined with contextual inputs before inference.
+
+### Donations
+
+- Donation campaigns
+- Campaign pages
+- Mock payment provider
+- No card numbers, CVVs, or bank credentials are collected or stored
+
+### Notifications
+
+- In-app notifications
+- Email channel stubs
+- SMS channel stubs
+- Push notification channel stubs
+- Smart alert infrastructure
+
+### Attendance & Impact
+
+- Volunteer attendance records
+- Task completion tracking
+- Beneficiary impact records
+- Response-time tracking
+- Service completion metrics
+
+### Demo Data
+
+The platform includes seed data for demonstrating:
+
+- Volunteers
+- NGOs
+- Communities
+- Tasks
+- Assignments
+- Donation campaigns
+- Notifications
+- Local intelligence
+
+---
+
+## Architecture
+
+```text
+                         ServeSense
+                             │
+        ┌────────────────────┼────────────────────┐
+        │                    │                    │
+   Volunteer App        NGO Dashboard       Donation Portal
+        │                    │                    │
+        └────────────────────┼────────────────────┘
+                             │
+                        FastAPI Backend
+                             │
+       ┌─────────────────────┼─────────────────────┐
+       │                     │                     │
+   Matching Engine     Local Intelligence    Notification
+       │                     │                     │
+       │                     ├── Need Scoring
+       │                     ├── Gap Analysis
+       │                     ├── Resource Map
+       │                     └── Demand Prediction
+       │                              │
+       │                         LightGBM Model
+       │                              │
+       └──────────────────────────────┼──────────────
+                                      │
+                                SQLite Database
