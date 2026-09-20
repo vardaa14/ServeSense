@@ -84,3 +84,32 @@ export function greetingName(name) {
   const hello = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
   return `${hello}, ${name || "there"}`
 }
+
+export async function getDemandPrediction(regionData) {
+  const response = await fetch(`${API}/intelligence/predict-demand`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(regionData),
+  });
+
+  if (!response.ok) {
+    let detail = await response.text();
+
+    try {
+      const parsed = JSON.parse(detail);
+      detail = parsed.detail || detail;
+    } catch {
+      // Keep original response text
+    }
+
+    throw new Error(
+      typeof detail === "string"
+        ? detail
+        : JSON.stringify(detail)
+    );
+  }
+
+  return response.json();
+}

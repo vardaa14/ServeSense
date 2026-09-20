@@ -3,6 +3,10 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
 from app.services import intelligence_service
+from app.services.intelligence_service import (
+    DemandPredictionRequest,
+    demand_prediction_service,
+)
 
 router = APIRouter(prefix="/intelligence", tags=["intelligence"])
 
@@ -39,6 +43,24 @@ def gaps(organization_id: str | None = None, db: Session = Depends(get_db)):
 def map_data(db: Session = Depends(get_db)):
     return intelligence_service.map_payload(db)
 
+@router.post("/predict-demand")
+def predict_demand(
+    payload: DemandPredictionRequest,
+    db: Session = Depends(get_db),
+):
+    result = demand_prediction_service.predict_for_region(
+        db=db,
+        region=payload.region,
+        external_data=payload.dict(),
+    )
+
+    if "error" in result:
+        raise HTTPException(
+            status_code=500,
+            detail=result["error"],
+        )
+
+    return result
 
 @router.post("/alerts/dispatch")
 def dispatch(db: Session = Depends(get_db)):

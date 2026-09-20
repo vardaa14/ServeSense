@@ -324,3 +324,19 @@ def dispatch_smart_alerts(db: Session, need_threshold: float = 0.65):
                 )
                 created += 1
     return created
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from app.deps import get_db
+from app.services.demand_service import demand_prediction_service
+from pydantic import BaseModel
+from typing import Optional
+
+router = APIRouter(prefix="/intelligence", tags=["intelligence"])
+
+class DemandPredictionRequest(BaseModel):
+    region: str
+    disaster_severity_score: Optional[float] = 0.0
+    event_radius_km: Optional[float] = 0.0
+    population_density_sqkm: Optional[float] = 5000.0
+    vulnerability_index: Optional[float] = 0.5
