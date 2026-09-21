@@ -1,7 +1,7 @@
 export default function MapView({ points = [], height = 360 }) {
   const usable = points.filter((p) => p.lat != null && p.lng != null)
   if (usable.length === 0) {
-    return <div className="map empty-map">No mapped locations yet. Seed demo data to plot communities and tasks.</div>
+    return <div className="map-container flex items-center justify-center p-8 text-muted text-center border-dashed">No mapped locations yet. Seed demo data to plot communities and tasks.</div>
   }
   const lats = usable.map((p) => p.lat)
   const lngs = usable.map((p) => p.lng)
@@ -16,20 +16,20 @@ export default function MapView({ points = [], height = 360 }) {
   }
 
   return (
-    <div className="map" style={{ height }}>
-      <div className="map-grid" />
+    <div className="map-container" style={{ height }}>
+      <div className="map-grid-overlay" />
       {usable.map((p) => {
         const { x, y } = project(p.lat, p.lng)
         return (
           <button
             key={p.id}
-            className={`pin ${p.kind || "need"}`}
+            className={`map-pin ${p.kind || "need"}`}
             style={{ left: `${x}%`, top: `${y}%` }}
             title={p.label}
             type="button"
           >
-            <span />
-            <em>{p.label}</em>
+            <span className="map-pin-dot" />
+            <span className="map-pin-label">{p.label}</span>
           </button>
         )
       })}
